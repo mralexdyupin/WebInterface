@@ -1,3 +1,4 @@
+import com.codeborne.selenide.Condition;
 import org.junit.jupiter.api.*;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.CsvFileSource;
@@ -6,76 +7,53 @@ import org.openqa.selenium.WebDriver;
 import org.openqa.selenium.chrome.ChromeDriver;
 
 
-
+import static com.codeborne.selenide.Selenide.$;
+import static com.codeborne.selenide.Selenide.open;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
 public class CallBackTest {
-    private WebDriver driver;
-
-    @BeforeAll
-    static void SetUpAll() {
-        System.setProperty("webdriver.chrome.driver", "C:\\tmp\\chromedriver.exe");
-    }
-
-    @BeforeEach
-    void setUp() {
-        driver = new ChromeDriver();
-    }
-
-    @AfterEach
-    void tearDown() {
-        driver.quit();
-        driver = null;
-    }
-
-    /*Рабочие тесты позитивный сценарий, добавить @DisplayName*/
 
     @ParameterizedTest
     @CsvFileSource(resources = "/NamePositiveData.csv", numLinesToSkip = 1)
-    void TestWebFormV2(String name) {
-        driver.get("http://localhost:9999");
-        driver.findElement(By.cssSelector("[data-test-id=name] .input__control")).sendKeys(name);
-        driver.findElement(By.cssSelector("[data-test-id=phone] .input__control")).sendKeys("+79999999999");
-        driver.findElement(By.cssSelector("[data-test-id=agreement]")).click();
-        driver.findElement(By.cssSelector(".button")).click();
-        String result = driver.findElement(By.cssSelector("[data-test-id=order-success]")).getText();
-        assertEquals("Ваша заявка успешно отправлена! Наш менеджер свяжется с вами в ближайшее время.", result.trim());
-//        Thread.sleep(5000);
+    void TestWebFormNamePositive(String name) {
+        open("localhost:9999");
+        $(By.cssSelector("[data-test-id=name] .input__control")).setValue(name);
+        $(By.cssSelector("[data-test-id=phone] .input__control")).setValue("+79999999999");
+        $(By.cssSelector("[data-test-id=agreement]")).click();
+        $(By.cssSelector(".button")).click();
+        $(By.cssSelector("[data-test-id=order-success]")).shouldHave(Condition.exactText
+                ("Р’Р°С€Р° Р·Р°СЏРІРєР° СѓСЃРїРµС€РЅРѕ РѕС‚РїСЂР°РІР»РµРЅР°! РќР°С€ РјРµРЅРµРґР¶РµСЂ СЃРІСЏР¶РµС‚СЃСЏ СЃ РІР°РјРё РІ Р±Р»РёР¶Р°Р№С€РµРµ РІСЂРµРјСЏ."));
     }
 
     @ParameterizedTest
     @CsvFileSource(resources = "/NameNegativeData.csv", numLinesToSkip = 1)
-    void TestWebFormV3(String name) {
-        driver.get("http://localhost:9999");
-        driver.findElement(By.cssSelector("[data-test-id=name] .input__control")).sendKeys(name);
-        driver.findElement(By.cssSelector("[data-test-id=phone] .input__control")).sendKeys("+79999999999");
-        driver.findElement(By.cssSelector("[data-test-id=agreement]")).click();
-        driver.findElement(By.cssSelector(".button")).click();
-        String result = driver.findElement(By.cssSelector("[data-test-id=name] .input__sub")).getText();
-        assertEquals("Имя и Фамилия указаные неверно. Допустимы только русские буквы, пробелы и дефисы.", result.trim());
+    void TestWebNameNegative(String name, String result) {
+        open("localhost:9999");
+        $(By.cssSelector("[data-test-id=name] .input__control")).setValue(name);
+        $(By.cssSelector("[data-test-id=phone] .input__control")).setValue("+79999999999");
+        $(By.cssSelector("[data-test-id=agreement]")).click();
+        $(By.cssSelector(".button")).click();
+        $(By.cssSelector("[data-test-id = name] .input__sub")).shouldHave(Condition.exactText(result));
     }
 
     @ParameterizedTest
     @CsvFileSource(resources = "/PhoneNegativeData.csv", numLinesToSkip = 1)
-    void TestWebFormPhone(String phone) {
-        driver.get("http://localhost:9999");
-        driver.findElement(By.cssSelector("[data-test-id=name] .input__control")).sendKeys("Тест тест");
-        driver.findElement(By.cssSelector("[data-test-id=phone] .input__control")).sendKeys(phone);
-        driver.findElement(By.cssSelector("[data-test-id=agreement]")).click();
-        driver.findElement(By.cssSelector(".button")).click();
-        String result = driver.findElement(By.cssSelector("[data-test-id=phone] .input__sub")).getText();
-        assertEquals("Телефон указан неверно. Должно быть 11 цифр, например, +79012345678.", result.trim());
+    void TestWebFormPhoneNegative(String phone, String result) {
+        open("localhost:9999");
+        $(By.cssSelector("[data-test-id=name] .input__control")).setValue("РРІР°РЅ РРІР°РЅРѕ");
+        $(By.cssSelector("[data-test-id=phone] .input__control")).setValue(phone);
+        $(By.cssSelector("[data-test-id=agreement]")).click();
+        $(By.cssSelector(".button")).click();
+        $(By.cssSelector("[data-test-id = phone] .input__sub")).shouldHave(Condition.exactText(result));
     }
 
     @Test
-    void TestWebFormV4() {
-        driver.get("http://localhost:9999");
-        driver.findElement(By.cssSelector("[data-test-id=name] .input__control")).sendKeys("Тест Тест");
-        driver.findElement(By.cssSelector("[data-test-id=phone] .input__control")).sendKeys("+79999999999");
-        driver.findElement(By.cssSelector(".button")).click();
-        String result = driver.findElement(By.cssSelector("[data-test-id=agreement]")).getCssValue("color");
-        assertEquals("rgba(255, 92, 92, 1)", result);
-//        Thread.sleep(5000);
+    void TestWebFormAgreementNegative() {
+        open("localhost:9999");
+        $(By.cssSelector("[data-test-id=name] .input__control")).setValue("РРІР°РЅ РРІР°РЅРѕРІ");
+        $(By.cssSelector("[data-test-id=phone] .input__control")).setValue("+79998887766");
+        $(By.cssSelector(".button")).click();
+        $(By.cssSelector("[data-test-id=agreement]")).should(Condition.cssValue("color",
+                "rgba(255, 92, 92, 1)"));
     }
-    /*Тесты на валидацию, т.е. с пустыми полями*/
 }
